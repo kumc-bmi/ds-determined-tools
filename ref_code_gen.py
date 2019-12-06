@@ -26,11 +26,22 @@ Record = py.Dict[str, object]
 
 
 def main(argv: py.List[str], environ: py.Dict[str, str],
+         basicConfig: py.Callable[..., None],
          web_ua: OpenerDirector_T) -> None:
+    basicConfig(
+        format='%(asctime)s (%(levelname)s) %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S',
+        level=logging.DEBUG if '--debug' in argv
+        else logging.INFO)
+    if '--debug' in argv:
+        argv.remove('--debug')
+
     batch_size = int(argv[1]) if len(argv) >= 2 else ReferralCode.batch_size
     site_qty = int(argv[2]) if len(argv) >= 3 else ReferralCode.site_qty
+
     batch = ReferralCode.batch(batch_size, site_qty)
     log.debug('batch: %s', batch)
+
     p1 = Project(web_ua, Project.kumc_redcap_api, environ[Project.key])
     p1.import_records(batch)
 
@@ -96,14 +107,6 @@ if __name__ == '__main__':
         from os import environ
         from urllib.request import build_opener
 
-        logging.basicConfig(
-            format='%(asctime)s (%(levelname)s) %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
-            level=logging.DEBUG if '--debug' in argv
-            else logging.INFO)
-        if '--debug' in argv:
-            argv.remove('--debug')
-
-        main(argv[:], environ.copy(), build_opener())
+        main(argv[:], environ.copy(), logging.basicConfig, build_opener())
 
     _script_io()
