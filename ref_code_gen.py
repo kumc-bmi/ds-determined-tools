@@ -4,14 +4,15 @@ We can make a batch of 2 records from each of 3 sites::
 
     >>> b = ReferralCode.batch(2, 3)
     >>> print(pformat(b))
-    [{'record_id': 'SA-0000', 'redcap_data_access_group': 'sa'},
-     {'record_id': 'SA-0001', 'redcap_data_access_group': 'sa'},
-     {'record_id': 'SB-0000', 'redcap_data_access_group': 'sb'},
-     {'record_id': 'SB-0001', 'redcap_data_access_group': 'sb'},
-     {'record_id': 'SC-0000', 'redcap_data_access_group': 'sc'},
-     {'record_id': 'SC-0001', 'redcap_data_access_group': 'sc'}]
+    [{'record_id': 'SA-00004', 'redcap_data_access_group': 'sa'},
+     {'record_id': 'SA-00016', 'redcap_data_access_group': 'sa'},
+     {'record_id': 'SB-00002', 'redcap_data_access_group': 'sb'},
+     {'record_id': 'SB-00018', 'redcap_data_access_group': 'sb'},
+     {'record_id': 'SC-00003', 'redcap_data_access_group': 'sc'},
+     {'record_id': 'SC-00013', 'redcap_data_access_group': 'sc'}]
 """
 
+from binascii import crc32
 from pprint import pformat
 from urllib.error import HTTPError
 from urllib.parse import urlencode
@@ -53,10 +54,39 @@ class ReferralCode:
     @classmethod
     def batch(cls, batch_size: int, site_qty: int) -> py.List[Record]:
         sites = [f'S{chr(c)}' for c in range(ord('A'), ord('A') + site_qty)]
-        return [{'record_id': f'{site}-{n:04d}',
+        return [{'record_id': cls.check_digit(f'{site}-{n:04d}'),
                  'redcap_data_access_group': site.lower()}
                 for site in sites
                 for n in range(batch_size)]
+
+    @classmethod
+    def check_digit(cls, candidate: str,
+                    base_len: int = len('SA-1234')) -> str:
+        """Add or verify check digit.
+
+        Add check digit when not present:
+
+        >>> ReferralCode.check_digit('SB-0025')
+        'SB-00253'
+
+        Verify when present:
+
+        >>> ReferralCode.check_digit('SB-00018')
+        'SB-00018'
+
+        >>> ReferralCode.check_digit('SB-00025')
+        Traceback (most recent call last):
+          ...
+        ValueError: SB-00025
+
+        """
+        base = candidate[:base_len]
+        crc = crc32(base.encode('utf-8'))
+        digit = crc % 10
+        out = f'{base}{digit}'
+        if out != candidate and len(candidate) > base_len:
+            raise ValueError(candidate)
+        return out
 
 
 class Project:
