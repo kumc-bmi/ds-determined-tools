@@ -53,7 +53,7 @@ class ReferralCode:
 
     @classmethod
     def batch(cls, batch_size: int, site_qty: int) -> py.List[Record]:
-        sites = [f'S{chr(c)}' for c in range(ord('A'), ord('A') + site_qty)]
+        sites = [f'S{chr(ord("A") + site_ix)}' for site_ix in range(site_qty)]
         return [{'record_id': cls.check_digit(f'{site}-{n:04d}'),
                  'redcap_data_access_group': site.lower()}
                 for site in sites
