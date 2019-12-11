@@ -4,7 +4,7 @@ FLAKE8=flake8
 
 SRC=ref_code_gen.py
 
-check:
+check: doctest lint
 	$(MYPY) --strict $(SRC)
 
 lint:
