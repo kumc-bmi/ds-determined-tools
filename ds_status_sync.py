@@ -58,13 +58,31 @@ class DSConnectSurvey:
         req = Request(self.url,
                       data=json.dumps({"stids": stids}).encode('utf-8'),
                       headers={
-                          'Content-Type': 'application/json',
-                          'X-DSNIH-KEY': self.__api_key,
+                          NoCap('Content-Type'): 'application/json',
+                          NoCap('X-DSNIH-KEY'): self.__api_key,
                       })
-        log.info('getting status for %s:\ndata: %s\nheaders: %s',
-                 stids, req.data, req.header_items())
+        log.debug('getting status for %s:\ndata: %s\nheaders: %s',
+                  stids, req.data, req.header_items())
         resp = self.__opener.open(req)
         return json.loads(resp.read())
+
+
+class NoCap(str):
+    """Work around HTTP header name case normalization
+
+    The python standard library takes advantage of the case-insensitivity
+    from the HTTP spec to normalize case of HTTP headers, but some
+    servers (e.g. the DS-Connect API server) are sensitive to case anyway.
+
+    So we override the capitalize() method used for case normalization.
+
+    ack: Blender Aug '13 https://stackoverflow.com/a/18268226/7963
+    """
+    def title(self):
+        return self
+
+    def capitalize(self):
+        return self
 
 
 if __name__ == '__main__':
@@ -73,7 +91,7 @@ if __name__ == '__main__':
         from sys import argv
         from urllib.request import build_opener
 
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
         main(argv[:], env=environ.copy(), build_opener=build_opener)
 
     _script_io()
