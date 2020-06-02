@@ -21,7 +21,7 @@ import typing as py
 log = logging.getLogger(__name__)
 
 
-TEST_STIDS = [91, 90]
+TEST_STIDS = ['91', '90']
 
 WebBuilder = py.Callable[..., OpenerDirector]
 
@@ -60,7 +60,7 @@ class DSConnectSurvey:
         auth_handler = HTTPBasicAuthHandler(p)
         return build_opener(auth_handler)
 
-    def getstatus(self, stids: py.List[int]) -> py.List[object]:
+    def getstatus(self, stids: py.List[str]) -> py.List[object]:
         req = Request(self.url,
                       data=json.dumps({"stids": stids}).encode('utf-8'),
                       headers={
