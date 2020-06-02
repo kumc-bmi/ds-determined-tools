@@ -1,7 +1,7 @@
-# DS-Engage referral code generator
+# DS-Determined Study Tools
 
 
-## REDCap Upload Usage
+## Referral Code Generator: REDCap Upload Usage
 
 First create a REDCap project and get an API token with import access.
 
@@ -12,6 +12,16 @@ $ REDCAP_API_TOKEN=XYZ... python3 ref_code_gen.py 2 3
 2019-12-06 17:31:59 (INFO) sending: [('token', '...'), ('content', 'record'), ('data', '[{"record_id": '), ('format', 'json')]
 2019-12-06 17:31:59 (INFO) result: {'count': 6}
 ```
+
+## Self-Determination Inventory Status
+
+`sds_flat.py` converts status info from JSON as provided by SDI to CSV
+for convenient import into REDCap.
+
+
+## DS-Connect Status API Client (WIP)
+
+See `ds_status_sync.py`.
 
 
 ## Background
