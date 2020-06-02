@@ -26,7 +26,7 @@ TEST_STIDS = [91, 90]
 WebBuilder = py.Callable[..., OpenerDirector]
 
 
-def main(argv: py.List[str], env: py.Dict[str, str],
+def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
          build_opener: WebBuilder) -> None:
     [username, passkey, api_passkey] = argv[1:4]
 
@@ -35,7 +35,8 @@ def main(argv: py.List[str], env: py.Dict[str, str],
     ds = DSConnectSurvey(opener, api_key=env[api_passkey])
     try:
         status = ds.getstatus(TEST_STIDS)
-        log.info('status: %s', status)
+        log.debug('status: %s', status)
+        json.dump(status, stdout, indent=2)
     except HTTPError as err:
         log.error('error %s %s\n%s\n%s',
                   err.code, err.reason, err.headers, err.read())
@@ -93,10 +94,11 @@ class NoCap(str):
 if __name__ == '__main__':
     def _script_io() -> None:
         from os import environ
-        from sys import argv
+        from sys import argv, stdout
         from urllib.request import build_opener
 
-        logging.basicConfig(level=logging.INFO)
-        main(argv[:], env=environ.copy(), build_opener=build_opener)
+        logging.basicConfig(level=logging.DEBUG)
+        main(argv[:], env=environ.copy(), stdout=stdout,
+             build_opener=build_opener)
 
     _script_io()
