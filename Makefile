@@ -2,19 +2,19 @@ MYPY=mypy
 PYTHON3=python
 FLAKE8=flake8
 
-SRC=ref_code_gen.py
+SRCS=ref_code_gen.py ds_status_sync.py
 
 check: doctest lint
-	$(MYPY) --strict $(SRC)
+	$(MYPY) --strict $(SRCS)
 
-lint:
-	$(FLAKE8) $(SRC)
+lint: $(SRCS)
+	$(FLAKE8) $(SRCS)
 
 doctest:
-	$(PYTHON3) -m doctest $(SRC)
+	$(PYTHON3) -m doctest $(SRCS)
 
-run: lint check doctest
-	$(PYTHON3) $(SRC)
+run: lint check doctest ref_code_gen.py
+	$(PYTHON3) ref_code_gen.py
 
 integration_test: lint check doctest
 	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) $(SRC) 2 3

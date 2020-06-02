@@ -8,22 +8,26 @@ python ds_status_sync.py user123 DS_PASS DS_KEY
 
 """
 
-from typing import List
 from urllib.error import HTTPError
 from urllib.request import Request
 from urllib.request import (
-    HTTPBasicAuthHandler, HTTPPasswordMgrWithDefaultRealm
+    HTTPBasicAuthHandler, HTTPPasswordMgrWithDefaultRealm,
+    OpenerDirector,
 )
 import json
 import logging
+import typing as py
 
 log = logging.getLogger(__name__)
 
 
 TEST_STIDS = [91, 90]
 
+WebBuilder = py.Callable[..., OpenerDirector]
 
-def main(argv, env, build_opener) -> None:
+
+def main(argv: py.List[str], env: py.Dict[str, str],
+         build_opener: WebBuilder) -> None:
     [username, passkey, api_passkey] = argv[1:4]
 
     creds = (username, env[passkey])
@@ -41,20 +45,21 @@ def main(argv, env, build_opener) -> None:
 class DSConnectSurvey:
     url = 'https://dsconnect25.pxrds-test.com/component/api/survey/getstatus'
 
-    def __init__(self, opener, api_key):
+    def __init__(self, opener: OpenerDirector, api_key: str) -> None:
         self.__opener = opener
         self.__api_key = api_key
 
     @classmethod
-    def basic_opener(cls, build_opener, creds):
+    def basic_opener(cls, build_opener: WebBuilder,
+                     creds: py.Tuple[str, str]) -> OpenerDirector:
         p = HTTPPasswordMgrWithDefaultRealm()
         username, password = creds
-        p.add_password(None, cls.url, username, password)
+        p.add_password(None, cls.url, username, password)  # type: ignore
 
         auth_handler = HTTPBasicAuthHandler(p)
         return build_opener(auth_handler)
 
-    def getstatus(self, stids: List[str]) -> List[object]:
+    def getstatus(self, stids: py.List[int]) -> py.List[object]:
         req = Request(self.url,
                       data=json.dumps({"stids": stids}).encode('utf-8'),
                       headers={
@@ -64,7 +69,7 @@ class DSConnectSurvey:
         log.debug('getting status for %s:\ndata: %s\nheaders: %s',
                   stids, req.data, req.header_items())
         resp = self.__opener.open(req)
-        return json.loads(resp.read())
+        return [status for status in json.loads(resp.read())]
 
 
 class NoCap(str):
@@ -78,10 +83,10 @@ class NoCap(str):
 
     ack: Blender Aug '13 https://stackoverflow.com/a/18268226/7963
     """
-    def title(self):
+    def title(self) -> str:
         return self
 
-    def capitalize(self):
+    def capitalize(self) -> str:
         return self
 
 
