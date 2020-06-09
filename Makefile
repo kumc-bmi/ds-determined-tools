@@ -17,7 +17,10 @@ run: lint check doctest ref_code_gen.py
 	$(PYTHON3) ref_code_gen.py
 
 integration_test: lint check doctest
-	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) $(SRC) 2 3
+	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ref_code_gen.py 2 3
+
+integration_test_pdf: lint check doctest
+	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ds_status_sync.py --send-consent REDCAP_API_TOKEN
 
 debug: lint check
 	$(PYTHON3) $(SRC) --debug
