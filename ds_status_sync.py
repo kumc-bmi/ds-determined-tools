@@ -29,7 +29,7 @@ log = logging.getLogger(__name__)
 
 REDCAP_API = 'https://redcap.kumc.edu/api/'
 
-TEST_STIDS = ['91', '90']
+DS_DETERMINED = '92'
 
 WebBuilder = py.Callable[..., OpenerDirector]
 
@@ -168,7 +168,7 @@ class DSConnectSurvey:
 
     def _integration_test(self, stdout: py.IO[str]) -> None:
         try:
-            status = self.getstatus(TEST_STIDS)
+            status = self.getstatus([DS_DETERMINED])
             log.debug('status: %s', status)
             json.dump(status, stdout, indent=2)
         except HTTPError as err:
