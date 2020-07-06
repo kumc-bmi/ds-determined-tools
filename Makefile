@@ -4,7 +4,9 @@ FLAKE8=flake8
 
 SRCS=ref_code_gen.py ds_status_sync.py
 
-check: doctest lint
+check: doctest lint static
+
+static:
 	$(MYPY) --strict $(SRCS)
 
 lint: $(SRCS)
