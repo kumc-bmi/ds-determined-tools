@@ -41,6 +41,7 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         else:
             session = make_session()
         return DSConnectStudy(session, api_key=env[api_passkey])
+
     if '--get-status' in argv:
         [api_passkey] = argv[2:3]
         ds = study(api_passkey)
@@ -68,24 +69,44 @@ class REDCapAPI:
     def export_records(self, dateRangeBegin: datetime,
                        filterLogic: str,
                        fields_0: str) -> py.List[py.Dict[str, str]]:
+        req = self.export_request(self.url, self.__api_token,
+                                  dateRangeBegin, filterLogic, fields_0)
+        log.info('export records: url=%s', self.url)
+        log.debug('export records: data=%s', req.data)
+        resp = self.__session.send(req.prepare())  # type: ignore
+        resp.raise_for_status()
+        records = py.cast(py.List[py.Dict[str, str]], resp.json())
+        log.debug('exported records: %s', records)
+        return records
+
+    @classmethod
+    def export_request(cls, url: str, token: str,
+                       dateRangeBegin: datetime,
+                       filterLogic: str,
+                       fields_0: str) -> Request:
+        """
+        >>> r = REDCapAPI.export_request(
+        ...     'https://redcap/api', 'sekret', datetime(2001, 1, 1),
+        ...     "[consent_to_link_complete] = '2'", 'record_id')
+        >>> r = r.prepare()
+        >>> r.body[:62]
+        'token=sekret&content=record&format=json&type=flat&filterLogic='
+        >>> r.body[62:119]
+        '%5Bconsent_to_link_complete%5D+%3D+%272%27&fields%5B0%5D='
+        >>> r.body[119:]
+        'record_id&returnFormat=json&dateRangeBegin=2001-01-01+00%3A00%3A00'
+        """
         data = {
-            'token': self.__api_token,
+            'token': token,
             'content': 'record',
             'format': 'json',
             'type': 'flat',
             'filterLogic': filterLogic,
             'fields[0]': fields_0,
             'returnFormat': 'json',
-            'dateRangeBegin': self._fmt_time(dateRangeBegin),
+            'dateRangeBegin': cls._fmt_time(dateRangeBegin),
         }
-        log.info('export records: url=%s', self.url)
-        log.debug('export records: data=%s', data)
-        req = Request('POST', self.url, data=data)
-        resp = self.__session.send(req.prepare())  # type: ignore
-        resp.raise_for_status()
-        records = py.cast(py.List[py.Dict[str, str]], resp.json())
-        log.debug('exported records: %s', records)
-        return records
+        return Request('POST', url, data=data)
 
     @classmethod
     def _fmt_time(cls, when: datetime) -> str:
@@ -97,20 +118,32 @@ class REDCapAPI:
         return when.strftime('%Y-%m-%d %H:%M:%S')
 
     def export_pdf(self, instrument: str, record: str) -> bytes:
-        req = Request('POST', self.url,
-                      data={
-                          'token': self.__api_token,
-                          'content': 'pdf',
-                          'record': record,
-                          'instrument': instrument,
-                          'returnFormat': 'json'
-                      })
+        req = self.pdf_request(self.url, self.__api_token, record, instrument)
         resp = self.__session.send(req.prepare())  # type: ignore
         resp.raise_for_status()
         pdf = b''
         for chunk in resp.iter_content(chunk_size=1024):
             pdf += chunk
         return pdf
+
+    @classmethod
+    def pdf_request(cls, url: str, token: str,
+                    record: str, instrument: str) -> Request:
+        """
+        >>> r = REDCapAPI.pdf_request(
+        ...     'https://redcap/api', 'sekret', 'SB-0001', 'stuff')
+        >>> r = r.prepare()
+        >>> r.body
+        'token=sekret&content=pdf&record=SB-0001&instrument=stuff&returnFormat=json'
+        """
+        return Request('POST', url,
+                       data={
+                           'token': token,
+                           'content': 'pdf',
+                           'record': record,
+                           'instrument': instrument,
+                           'returnFormat': 'json'
+                       })
 
 
 class ConsentToLink(REDCapAPI):
@@ -130,8 +163,7 @@ class ConsentToLink(REDCapAPI):
     def consent_form(self, record: str) -> bytes:
         return self.export_pdf(self.instrument, record)
 
-    def pending(self, now: datetime) -> py.Iterator[
-            py.Tuple[str, bytes]]:
+    def pending(self, now: datetime) -> py.Iterator[py.Tuple[str, bytes]]:
         try:
             for record in self.consented_since(now - self.recent):
                 log.info('get consent form: record_id=%s', record)
@@ -168,13 +200,7 @@ class DSConnectStudy(ConsentDest):
     def getstatus(self, stids: py.List[str]) -> py.List[object]:
         """get status of a survey: who made it how far?
         """
-        url = self.base + 'component/api/survey/getstatus'
-        req = Request('POST', url,
-                      json={"stids": stids},
-                      headers={
-                          NoCap('Content-Type'): 'application/json',
-                          NoCap('X-DSNIH-KEY'): self.__api_key,
-                      })
+        req = self.status_request(self.__api_key, stids)
         log.debug('getting status for %s:\ndata: %s\nheaders: %s',
                   stids, req.data, req.headers.items())
         s = self.__session
@@ -182,20 +208,66 @@ class DSConnectStudy(ConsentDest):
         resp.raise_for_status()
         return [status for status in resp.json()]
 
+    @classmethod
+    def status_request(cls, api_key: str, stids: py.List[str]) -> Request:
+        """
+        >>> r = DSConnectStudy.status_request('sekret', ['20'])
+        >>> r = r.prepare()
+        >>> r.headers
+        ... # doctest: +NORMALIZE_WHITESPACE
+        {'Content-Type': 'application/json', 'X-DSNIH-KEY': 'sekret',
+         'Content-Length': '17'}
+        >>> r.body
+        b'{"stids": ["20"]}'
+        """
+        url = cls.base + 'component/api/survey/getstatus'
+        req = Request('POST', url,
+                      json={"stids": stids},
+                      headers={
+                          NoCap('Content-Type'): 'application/json',
+                          NoCap('X-DSNIH-KEY'): api_key,
+                      })
+        return req
+
     def send_user_consent(self, sbjid: str, consent_pdf: bytes) -> None:
         log.info('sending %d byte consent form for subject %s',
                  len(consent_pdf), sbjid)
-        req = Request('POST', self.base,
+        req = self.consent_request(consent_pdf, sbjid)
+        s = self.__session
+        resp = s.send(s.prepare_request(req))  # type: ignore
+        resp.raise_for_status()
+        log.info('sent consent form for %s', sbjid)
+
+    @classmethod
+    def consent_request(cls, consent_pdf: bytes, sbjid: str) -> Request:
+        r"""
+        >>> import random
+        >>> random.seed(1)
+        >>> r = DSConnectStudy.consent_request('pdfpdf', 'bob')
+        >>> r = r.prepare()
+        >>> r.headers
+        ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        {'Content-Length': '464',
+         'Content-Type': 'multipart/form-data; boundary=...'}
+        >>> r.body
+        ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
+        b'--...\r\nContent-Disposition: form-data; name="file";
+        filename="file"\r\n\r\npdfpdf\r\n--...\r\nContent-Disposition:
+        form-data; name="stdid";
+        filename="stdid"\r\n\r\n92\r\n--...\r\nContent-Disposition:
+        form-data; name="sbjid";
+        filename="sbjid"\r\n\r\nbob\r\n--...\r\nContent-Disposition:
+        form-data; name="share"; filename="share"\r\n\r\n1\r\n--...--\r\n'
+
+        """
+        req = Request('POST', cls.base,
                       files={
                           'file': consent_pdf,
                           'stdid': DS_DETERMINED,
                           'sbjid': sbjid,
                           'share': 1,  # share where? with whom??
                       })
-        s = self.__session
-        resp = s.send(s.prepare_request(req))  # type: ignore
-        resp.raise_for_status()
-        log.info('sent consent form for %s', sbjid)
+        return req
 
     def _integration_test(self, stdout: py.IO[str]) -> None:
         try:
@@ -212,6 +284,7 @@ class SaveConsent(ConsentDest):
     """
     Save consent docs to local files. Mostly for testing.
     """
+
     def __init__(self, dest: Path_T):
         self.__dest = dest
 
