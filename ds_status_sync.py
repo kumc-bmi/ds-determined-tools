@@ -241,9 +241,7 @@ class DSConnectStudy(ConsentDest):
     @classmethod
     def consent_request(cls, consent_pdf: bytes, sbjid: str) -> Request:
         r"""
-        >>> import random
-        >>> random.seed(1)
-        >>> r = DSConnectStudy.consent_request('pdfpdf', 'bob')
+        >>> r = DSConnectStudy.consent_request(b'pdfpdf', 'bob')
         >>> r = r.prepare()
         >>> r.headers
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
@@ -324,7 +322,7 @@ if __name__ == '__main__':
 
         from requests import Session
 
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(level=logging.INFO)
         main(argv[:], env=environ.copy(), stdout=stdout,
              cwd=Path('.'), now=datetime.now,
              make_session=lambda: Session())
