@@ -243,10 +243,15 @@ class DSConnectStudy(ConsentDest):
         r"""
         >>> r = DSConnectStudy.consent_request(b'pdfpdf', 'bob')
         >>> r = r.prepare()
+
+        >>> r.url
+        'https://dsconnect25.pxrds-test.com/component/api/user/consent'
+
         >>> r.headers
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         {'Content-Length': '464',
          'Content-Type': 'multipart/form-data; boundary=...'}
+
         >>> r.body
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         b'--...\r\nContent-Disposition: form-data; name="file";
@@ -258,7 +263,7 @@ class DSConnectStudy(ConsentDest):
         form-data; name="share"; filename="share"\r\n\r\n1\r\n--...--\r\n'
 
         """
-        req = Request('POST', cls.base,
+        req = Request('POST', cls.base + 'component/api/user/consent',
                       files={
                           'file': consent_pdf,
                           'stdid': DS_DETERMINED,
