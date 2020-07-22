@@ -232,16 +232,17 @@ class DSConnectStudy(ConsentDest):
     def send_user_consent(self, sbjid: str, consent_pdf: bytes) -> None:
         log.info('sending %d byte consent form for subject %s',
                  len(consent_pdf), sbjid)
-        req = self.consent_request(consent_pdf, sbjid)
+        req = self.consent_request(self.__api_key, consent_pdf, sbjid)
         s = self.__session
         resp = s.send(s.prepare_request(req))  # type: ignore
         resp.raise_for_status()
         log.info('sent consent form for %s', sbjid)
 
     @classmethod
-    def consent_request(cls, consent_pdf: bytes, sbjid: str) -> Request:
+    def consent_request(cls, api_key: str,
+                        consent_pdf: bytes, sbjid: str) -> Request:
         r"""
-        >>> r = DSConnectStudy.consent_request(b'pdfpdf', 'bob')
+        >>> r = DSConnectStudy.consent_request('sekret', b'pdfpdf', 'bob')
         >>> r = r.prepare()
 
         >>> r.url
@@ -249,26 +250,29 @@ class DSConnectStudy(ConsentDest):
 
         >>> r.headers
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-        {'Content-Length': '464',
+        {'X-DSNIH-KEY': 'sekret', 'Content-Length': '462',
          'Content-Type': 'multipart/form-data; boundary=...'}
 
         >>> r.body
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
         b'--...\r\nContent-Disposition: form-data; name="file";
         filename="file"\r\n\r\npdfpdf\r\n--...\r\nContent-Disposition:
-        form-data; name="stdid";
-        filename="stdid"\r\n\r\n92\r\n--...\r\nContent-Disposition:
+        form-data; name="stid";
+        filename="stid"\r\n\r\n92\r\n--...\r\nContent-Disposition:
         form-data; name="sbjid";
         filename="sbjid"\r\n\r\nbob\r\n--...\r\nContent-Disposition:
         form-data; name="share"; filename="share"\r\n\r\n1\r\n--...--\r\n'
 
         """
         req = Request('POST', cls.base + 'component/api/user/consent',
+                      headers={
+                          NoCap('X-DSNIH-KEY'): api_key,
+                      },
                       files={
                           'file': consent_pdf,
-                          'stdid': DS_DETERMINED,
+                          'stid': DS_DETERMINED,
                           'sbjid': sbjid,
-                          'share': 1,  # share where? with whom??
+                          'share': 1,
                       })
         return req
 
