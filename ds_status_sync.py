@@ -272,8 +272,8 @@ class DSConnectStudy(ConsentDest):
                       headers={
                           NoCap('X-DSNIH-KEY'): api_key,
                       },
-                      files={
-                          'file': consent_pdf,
+                      files={'file': consent_pdf},
+                      data={
                           'stid': DS_DETERMINED,
                           'sbjid': sbjid,
                           'share': 1,
