@@ -254,18 +254,16 @@ class DSConnectStudy(ConsentDest):
 
         >>> r.headers
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-        {'X-DSNIH-KEY': 'sekret', 'Content-Length': '462',
+        {'X-DSNIH-KEY': 'sekret', 'Content-Length': '409',
          'Content-Type': 'multipart/form-data; boundary=...'}
 
         >>> r.body
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-        b'--...\r\nContent-Disposition: form-data; name="file";
-        filename="file"\r\n\r\npdfpdf\r\n--...\r\nContent-Disposition:
-        form-data; name="stid";
-        filename="stid"\r\n\r\n92\r\n--...\r\nContent-Disposition:
-        form-data; name="sbjid";
-        filename="sbjid"\r\n\r\nbob\r\n--...\r\nContent-Disposition:
-        form-data; name="share"; filename="share"\r\n\r\n1\r\n--...--\r\n'
+        b'--...\r\nContent-Disposition: form-data;
+        name="stid"\r\n\r\n92\r\n--...\r\nContent-Disposition:
+        form-data; name="sbjid"\r\n\r\nbob\r\n--...\r\nContent-Disposition:
+        form-data; name="share"\r\n\r\n1\r\n--...\r\nContent-Disposition:
+        form-data; name="file"; filename="file"\r\n\r\npdfpdf\r\n--...--\r\n'
 
         """
         req = Request('POST', cls.base + 'component/api/user/consent',
