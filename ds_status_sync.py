@@ -55,6 +55,10 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
             dest = study(ds_key)
         for record, doc in svc.pending(now()):
             dest.send_user_consent(record, doc)
+    elif '--test-consent' in argv:
+        [ds_key] = argv[2:3]
+        dest = study(ds_key)
+        dest.send_user_consent('subject 1', open('testpdf.pdf', 'rb').read())
     else:
         raise ValueError(argv)
 
