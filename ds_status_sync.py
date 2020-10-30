@@ -188,7 +188,10 @@ class ConsentDest:
 class DSConnectStudy(ConsentDest):
     """DS-Connect API for a study
     """
-    base = 'https://dsconnect25.pxrds-test.com/'
+
+    base = 'https://dsconnect.nih.gov/'
+    # test:
+    # base = 'https://dsconnect25.pxrds-test.com/'
 
     def __init__(self, session: Session_T, api_key: str) -> None:
         self.__session = session
