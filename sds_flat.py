@@ -2,7 +2,7 @@ import json
 import csv
 
 
-RECORD_ID = 'referer'
+RECORD_ID = 'sbjid'
 
 
 def main(stdin, stdout):
