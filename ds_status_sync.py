@@ -54,8 +54,8 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         ds = study(ds_key)
         rc = REDCapAPI(REDCAP_API, make_session(), env[api_passkey])
         status = ds.getstatus([DS_DETERMINED])
-        json.dump(status, stdout, indent=2)
         records = list(complete(STATUS_FORM)(flatten(status)))
+        json.dump({'status': status, 'records': records}, stdout, indent=2)
         rc.import_records(records)
     elif '--send-consent' in argv:
         [api_passkey, ds_key] = argv[2:4]
