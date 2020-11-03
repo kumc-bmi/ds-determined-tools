@@ -2,7 +2,7 @@ MYPY=mypy
 PYTHON3=python
 FLAKE8=flake8
 
-SRCS=ref_code_gen.py ds_status_sync.py
+SRCS=ref_code_gen.py ds_status_sync.py sds_flat.py
 
 check: doctest lint static
 

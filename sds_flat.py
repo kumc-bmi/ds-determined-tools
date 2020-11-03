@@ -4,6 +4,8 @@ import typing as py
 
 
 RECORD_ID = 'sbjid'
+Record_T = py.Dict[str, str]
+Records_T = py.Iterable[Record_T]
 
 
 def main(stdin: py.TextIO, stdout: py.TextIO) -> None:
@@ -39,6 +41,23 @@ def flatten(records: py.List[py.Any]) -> py.Iterable[py.Dict[str, str]]:
                     continue
                 flatr[prop.lower()] = val
         yield flatr
+
+
+def complete(form_name: str,
+             value: int = 2) -> py.Callable[[Records_T], Records_T]:
+    """
+    >>> rs = complete('ds_connect_status')([{'a': 1}])
+    >>> list(rs)
+    [{'a': 1, 'ds_connect_status_complete': '2'}]
+    """
+    field_name = f"{form_name}_complete"
+
+    def with_complete(records: Records_T) -> Records_T:
+        for record in records:
+            record[field_name] = str(value)
+            yield record
+
+    return with_complete
 
 
 if __name__ == '__main__':

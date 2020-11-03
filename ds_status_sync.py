@@ -24,13 +24,14 @@ from urllib.error import HTTPError
 
 from requests import Request, Session as Session_T
 
-from sds_flat import flatten
+from sds_flat import flatten, complete
 
 log = logging.getLogger(__name__)
 
 REDCAP_API = 'https://redcap.kumc.edu/api/'
 
 DS_DETERMINED = '92'
+STATUS_FORM = 'ds_connect_status'
 
 WebBuilder = py.Callable[..., Session_T]
 Record_T = py.Dict[str, str]
@@ -54,7 +55,7 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         rc = REDCapAPI(REDCAP_API, make_session(), env[api_passkey])
         status = ds.getstatus([DS_DETERMINED])
         json.dump(status, stdout, indent=2)
-        records = list(flatten(status))
+        records = list(complete(STATUS_FORM)(flatten(status)))
         rc.import_records(records)
     elif '--send-consent' in argv:
         [api_passkey, ds_key] = argv[2:4]
