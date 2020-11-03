@@ -253,7 +253,7 @@ class DSConnectStudy(ConsentDest):
         >>> r = r.prepare()
 
         >>> r.url
-        'https://dsconnect25.pxrds-test.com/component/api/user/consent'
+        'https://dsconnect.nih.gov/component/api/user/consent'
 
         >>> r.headers
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
