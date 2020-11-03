@@ -1,13 +1,16 @@
 """ds_status_sync - sync DS-Connect status with KUMC REDCap
 
-Integration Test Usage:
+Usage:
 
-export DS_AUTH=...user:...pass
 export DS_KEY=...
 export REDCAP_API_TOKEN=...
 
-python ds_status_sync.py --get-status user123 DS_KEY
+python ds_status_sync.py --get-status REDCAP_API_TOKEN DS_KEY
 python ds_status_sync.py --send-consent REDCAP_API_TOKEN DS_KEY
+
+For integration testing, add:
+
+export DS_AUTH=...user:...pass
 
 """
 
@@ -20,6 +23,8 @@ from pathlib import Path as Path_T
 from urllib.error import HTTPError
 
 from requests import Request, Session as Session_T
+
+from sds_flat import flatten
 
 log = logging.getLogger(__name__)
 
@@ -44,9 +49,13 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         return DSConnectStudy(session, api_key=env[api_passkey])
 
     if '--get-status' in argv:
-        [api_passkey] = argv[2:3]
-        ds = study(api_passkey)
-        ds.dump_status(stdout)
+        [api_passkey, ds_key] = argv[2:4]
+        ds = study(ds_key)
+        rc = REDCapAPI(REDCAP_API, make_session(), env[api_passkey])
+        status = ds.getstatus([DS_DETERMINED])
+        json.dump(status, stdout, indent=2)
+        records = list(flatten(status))
+        rc.import_records(records)
     elif '--send-consent' in argv:
         [api_passkey, ds_key] = argv[2:4]
         svc = ConsentToLink(REDCAP_API, make_session(), env[api_passkey])
@@ -366,11 +375,11 @@ if __name__ == '__main__':
         from datetime import datetime
         from os import environ
         from pathlib import Path
-        from sys import argv, stdout
+        from sys import argv, stdout, stderr
 
         from requests import Session
 
-        logging.basicConfig(level=logging.INFO)
+        logging.basicConfig(level=logging.INFO, stream=stderr)
         main(argv[:], env=environ.copy(), stdout=stdout,
              cwd=Path('.'), now=datetime.now,
              make_session=lambda: Session())
