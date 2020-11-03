@@ -45,7 +45,7 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
     if '--get-status' in argv:
         [api_passkey] = argv[2:3]
         ds = study(api_passkey)
-        ds._integration_test(stdout)
+        ds.dump_status(stdout)
     elif '--send-consent' in argv:
         [api_passkey, ds_key] = argv[2:4]
         svc = ConsentToLink(REDCAP_API, make_session(), env[api_passkey])
@@ -281,7 +281,7 @@ class DSConnectStudy(ConsentDest):
                       })
         return req
 
-    def _integration_test(self, stdout: py.IO[str]) -> None:
+    def dump_status(self, stdout: py.IO[str]) -> None:
         try:
             status = self.getstatus([DS_DETERMINED])
             log.debug('status: %s', status)
