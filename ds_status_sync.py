@@ -28,6 +28,7 @@ REDCAP_API = 'https://redcap.kumc.edu/api/'
 DS_DETERMINED = '92'
 
 WebBuilder = py.Callable[..., Session_T]
+Record_T = py.Dict[str, str]
 
 
 def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
@@ -69,6 +70,39 @@ class REDCapAPI:
         self.url = url
         self.__session = session
         self.__api_token = api_token
+
+    def import_records(self, records: py.List[Record_T]) -> int:
+        req = self.import_request(self.url, self.__api_token, records)
+        log.info('import records: url=%s', self.url)
+        resp = self.__session.send(req.prepare())  # type: ignore
+        resp.raise_for_status()
+        result = py.cast(py.Dict[str, int], resp.json())
+        log.info('imported records: %s', result)
+        return result['count']
+
+    @classmethod
+    def import_request(cls, url: str, token: str,
+                       records: py.List[Record_T]) -> Request:
+        """
+        >>> r = REDCapAPI.import_request(
+        ...     'https://redcap/api', 'sekret',
+        ...     [{'a': 1}, {'a': 2}])
+        >>> r = r.prepare()
+        >>> r.body.split('&')  # doctest: +NORMALIZE_WHITESPACE
+        ['token=sekret', 'content=record', 'format=json',
+         'type=flat', 'returnFormat=json', 'returnContent=count',
+         'data=%5B%7B%22a%22%3A+1%7D%2C+%7B%22a%22%3A+2%7D%5D']
+        """
+        data = {
+            'token': token,
+            'content': 'record',
+            'format': 'json',
+            'type': 'flat',
+            'returnFormat': 'json',
+            'returnContent': 'count',
+            'data': json.dumps(records),
+        }
+        return Request('POST', url, data=data)
 
     def export_records(self, dateRangeBegin: datetime,
                        filterLogic: str,
