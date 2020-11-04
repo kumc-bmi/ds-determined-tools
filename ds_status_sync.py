@@ -84,7 +84,7 @@ class REDCapAPI:
     def import_records(self, records: py.List[Record_T]) -> int:
         req = self.import_request(self.url, self.__api_token, records)
         log.info('import records: url=%s', self.url)
-        resp = self.__session.send(req.prepare())  # type: ignore
+        resp = self.__session.send(req.prepare())
         resp.raise_for_status()
         result = py.cast(py.Dict[str, int], resp.json())
         log.info('imported records: %s', result)
@@ -121,7 +121,7 @@ class REDCapAPI:
                                   dateRangeBegin, filterLogic, fields_0)
         log.info('export records: url=%s', self.url)
         log.debug('export records: data=%s', req.data)
-        resp = self.__session.send(req.prepare())  # type: ignore
+        resp = self.__session.send(req.prepare())
         resp.raise_for_status()
         records = py.cast(py.List[py.Dict[str, str]], resp.json())
         log.debug('exported records: %s', records)
@@ -167,7 +167,7 @@ class REDCapAPI:
 
     def export_pdf(self, instrument: str, record: str) -> bytes:
         req = self.pdf_request(self.url, self.__api_token, record, instrument)
-        resp = self.__session.send(req.prepare())  # type: ignore
+        resp = self.__session.send(req.prepare())
         resp.raise_for_status()
         pdf = b''
         for chunk in resp.iter_content(chunk_size=1024):
