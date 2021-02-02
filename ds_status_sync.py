@@ -271,7 +271,7 @@ class DSConnectStudy(ConsentDest):
         >>> r.body
         b'{"stids": ["20"]}'
         """
-        url = cls.base + 'component/api/survey/getstatus'
+        url = cls.base + 'component/api/survey/'
         req = Request('POST', url,
                       json={"stids": stids},
                       headers={
