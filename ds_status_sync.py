@@ -271,9 +271,10 @@ class DSConnectStudy(ConsentDest):
         >>> r.body
         b'{"stids": ["20"]}'
         """
-        url = cls.base + 'component'
+        url = cls.base + 'component/api/survey/getstatus'
         req = Request('POST', url,
-                      json={"stids": stids},
+                      #json={"stids": stids},
+		      "{\r\n\t\"stids\": [92]\r\n}\r\n",
                       headers={
                           NoCap('Content-Type'): 'application/json',
                           NoCap('X-DSNIH-KEY'): api_key,
