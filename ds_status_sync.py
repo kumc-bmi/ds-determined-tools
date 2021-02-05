@@ -279,8 +279,8 @@ class DSConnectStudy(ConsentDest):
         req = Request('POST', url,
                       json={"stids": stids},
                       headers={
-                          NoCap('Content-Type'): 'application/json',
-                          NoCap('X-DSNIH-KEY'): api_key,
+                          'Content-Type': 'application/json',
+                          'X-DSNIH-KEY': api_key,
                           'User-Agent': cls.user_agent,
                       })
         return req
@@ -319,9 +319,7 @@ class DSConnectStudy(ConsentDest):
 
         """
         req = Request('POST', cls.base + 'component/api/user/consent',
-                      headers={
-                          NoCap('X-DSNIH-KEY'): api_key,
-                      },
+                      headers={'X-DSNIH-KEY': api_key},
                       files={'file': consent_pdf},
                       data={
                           'stid': DS_DETERMINED,
@@ -355,25 +353,6 @@ class SaveConsent(ConsentDest):
         with dest.open('wb') as out:
             out.write(consent_pdf)
             log.info('saved %d bytes to %s', len(consent_pdf), dest)
-
-
-class NoCap(str):
-    """Work around HTTP header name case normalization
-
-    The python standard library takes advantage of the case-insensitivity
-    from the HTTP spec to normalize case of HTTP headers, but some
-    servers (e.g. the DS-Connect API server) are sensitive to case anyway.
-
-    So we override the capitalize() method used for case normalization.
-
-    ack: Blender Aug '13 https://stackoverflow.com/a/18268226/7963
-    """
-
-    def title(self) -> str:
-        return self
-
-    def capitalize(self) -> str:
-        return self
 
 
 if __name__ == '__main__':
