@@ -85,7 +85,11 @@ class REDCapAPI:
         req = self.import_request(self.url, self.__api_token, records)
         log.info('import records: url=%s', self.url)
         resp = self.__session.send(req.prepare())
-        resp.raise_for_status()
+        try:
+            resp.raise_for_status()
+        except Exception:
+            log.error(resp.text)
+            raise
         result = py.cast(py.Dict[str, int], resp.json())
         log.info('imported records: %s', result)
         return result['count']
