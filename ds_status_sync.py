@@ -237,6 +237,9 @@ class DSConnectStudy(ConsentDest):
     # test:
     # base = 'https://dsconnect25.pxrds-test.com/'
 
+    # the default, python-requests, gets a 403 somehow
+    user_agent = 'ds_status_sync/2021.02.05'
+
     def __init__(self, session: Session_T, api_key: str) -> None:
         self.__session = session
         self.__api_key = api_key
@@ -267,6 +270,7 @@ class DSConnectStudy(ConsentDest):
         >>> r.headers
         ... # doctest: +NORMALIZE_WHITESPACE
         {'Content-Type': 'application/json', 'X-DSNIH-KEY': 'sekret',
+         'User-Agent': 'ds_status_sync/2021.02.05',
          'Content-Length': '17'}
         >>> r.body
         b'{"stids": ["20"]}'
@@ -277,6 +281,7 @@ class DSConnectStudy(ConsentDest):
                       headers={
                           NoCap('Content-Type'): 'application/json',
                           NoCap('X-DSNIH-KEY'): api_key,
+                          'User-Agent': cls.user_agent,
                       })
         return req
 
@@ -379,6 +384,10 @@ if __name__ == '__main__':
         from sys import argv, stdout, stderr
 
         from requests import Session
+
+        if '--debug' in argv:
+            import http.client as http_client
+            http_client.HTTPConnection.debuglevel = 1  # type: ignore
 
         logging.basicConfig(level=logging.INFO, stream=stderr)
         main(argv[:], env=environ.copy(), stdout=stdout,
