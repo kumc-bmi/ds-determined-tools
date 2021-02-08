@@ -285,7 +285,7 @@ class DSConnectStudy(ConsentDest):
                       headers={
                           'Content-Type': 'application/json',
                           'X-DSNIH-KEY': api_key,
-                          'User-Agent': cls.user_agent,
+                          'User-Agent': 'ds_status_sync/2021.02.05',
                       })
         return req
 
