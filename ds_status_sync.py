@@ -310,7 +310,8 @@ class DSConnectStudy(ConsentDest):
 
         >>> r.headers
         ... # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE
-        {'X-DSNIH-KEY': 'sekret', 'Content-Length': '409',
+        {'X-DSNIH-KEY': 'sekret', 'User-Agent': 'ds_status_sync/2021.02.05',
+         'Content-Length': '409',
          'Content-Type': 'multipart/form-data; boundary=...'}
 
         >>> r.body
@@ -323,7 +324,10 @@ class DSConnectStudy(ConsentDest):
 
         """
         req = Request('POST', cls.base + 'component/api/user/consent',
-                      headers={'X-DSNIH-KEY': api_key},
+                      headers={
+                          'X-DSNIH-KEY': api_key,
+                          'User-Agent': cls.user_agent,
+                      },
                       files={'file': consent_pdf},
                       data={
                           'stid': DS_DETERMINED,
