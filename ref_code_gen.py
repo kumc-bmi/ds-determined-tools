@@ -39,8 +39,9 @@ def main(argv: py.List[str], environ: py.Dict[str, str],
 
     batch_size = int(argv[1]) if len(argv) >= 2 else ReferralCode.batch_size
     site_qty = int(argv[2]) if len(argv) >= 3 else ReferralCode.site_qty
+    invite_code_type = argv[3]
 
-    batch = ReferralCode.batch(batch_size, site_qty)
+    batch = ReferralCode.batch(batch_size, site_qty, invite_code_type)
     log.debug('batch: %s', batch)
 
     p1 = Project(web_ua, Project.kumc_redcap_api, environ[Project.key])
@@ -52,9 +53,17 @@ class ReferralCode:
     site_qty = 5
 
     @classmethod
-    def batch(cls, batch_size: int, site_qty: int) -> py.List[Record]:
+    def batch(cls, batch_size: int, site_qty: int, invite_code_type: str) -> py.List[Record]:
+
+        if invite_code_type == 'production':
+            base_len: int = len('SA-1234')
+            invite_code: str = '' 
+        elif invite_code_type == 'test':
+            invite_code: str = '_TEST_'
+            base_len: int = len('SA-_TEST_1234')
+
         sites = [f'S{chr(ord("A") + site_ix)}' for site_ix in range(site_qty)]
-        return [{'record_id': cls.check_digit(f'{site}-{n:04d}'),
+        return [{'record_id': cls.check_digit(f'{site}-{invite_code}{n:04d}',base_len),
                  'redcap_data_access_group': site.lower()}
                 for site in sites
                 for n in range(batch_size)]
@@ -84,6 +93,7 @@ class ReferralCode:
         crc = crc32(base.encode('utf-8'))
         digit = crc % 10
         out = f'{base}{digit}'
+        # print(candidate, base_len, base, crc, digit, out)
         if out != candidate and len(candidate) > base_len:
             raise ValueError(candidate)
         return out

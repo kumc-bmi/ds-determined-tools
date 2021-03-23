@@ -5,14 +5,20 @@
 
 First create a REDCap project and get an API token with import access.
 
-To generate a batch of 2 records from each of 3 sites:
+To generate a batch of 2 PRODUCTION records from each of 3 sites:
 
 ```
-$ REDCAP_API_TOKEN=XYZ... python3 ref_code_gen.py 2 3
+$ REDCAP_API_TOKEN=XYZ... python3 ref_code_gen.py 2 3 production
 2019-12-06 17:31:59 (INFO) sending: [('token', '...'), ('content', 'record'), ('data', '[{"record_id": '), ('format', 'json')]
 2019-12-06 17:31:59 (INFO) result: {'count': 6}
 ```
+To generate a batch of 2 TEST records from each of 3 sites:
 
+```
+$ REDCAP_API_TOKEN=XYZ... python3 ref_code_gen.py 2 3 test
+2019-12-06 17:31:59 (INFO) sending: [('token', '...'), ('content', 'record'), ('data', '[{"record_id": '), ('format', 'json')]
+2019-12-06 17:31:59 (INFO) result: {'count': 6}
+```
 ## Self-Determination Inventory Status
 
 `sds_flat.py` converts status info from JSON as provided by SDI to CSV
