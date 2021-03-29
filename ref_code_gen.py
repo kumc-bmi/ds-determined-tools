@@ -104,6 +104,7 @@ class ReferralCode:
         crc = crc32(base.encode('utf-8'))
         digit = crc % 10
         out = f'{base}{digit}'
+        # uncomment following to understand the logic.
         # print(candidate, base_len, base, crc, digit, out)
         if out != candidate and len(candidate) > base_len:
             raise ValueError(candidate)
