@@ -15,13 +15,19 @@ lint: $(SRCS)
 doctest:
 	$(PYTHON3) -m doctest $(SRCS)
 
-run: lint check doctest ref_code_gen.py
-	$(PYTHON3) ref_code_gen.py
+set_env_variable:
+	echo "Make sure to set REDCAP_API_TOKEN as env variable."
 
-integration_test: lint check doctest
-	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ref_code_gen.py 2 3
+run_test: lint check doctest set_env_variable ref_code_gen.py
+	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ref_code_gen.py 5 5 test
 
-integration_test_pdf: lint check doctest
+run_production: lint check doctest set_env_variable ref_code_gen.py
+	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ref_code_gen.py 1000 5 production
+
+integration_test: lint check doctest set_env_variable
+	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ref_code_gen.py 5 5 test
+
+integration_test_pdf: lint check doctest set_env_variable
 	REDCAP_API_TOKEN=$(REDCAP_API_TOKEN) $(PYTHON3) ds_status_sync.py --send-consent REDCAP_API_TOKEN
 
 debug: lint check
