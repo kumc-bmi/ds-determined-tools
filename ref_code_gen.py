@@ -2,7 +2,7 @@
 
 We can make a batch of 2 records from each of 3 sites::
 
-    >>> b = ReferralCode.batch(2, 3)
+    >>> b = ReferralCode.batch(2, 3, 'production')
     >>> print(pformat(b))
     [{'record_id': 'SA-00004', 'redcap_data_access_group': 'sa'},
      {'record_id': 'SA-00016', 'redcap_data_access_group': 'sa'},
@@ -10,6 +10,15 @@ We can make a batch of 2 records from each of 3 sites::
      {'record_id': 'SB-00018', 'redcap_data_access_group': 'sb'},
      {'record_id': 'SC-00003', 'redcap_data_access_group': 'sc'},
      {'record_id': 'SC-00013', 'redcap_data_access_group': 'sc'}]
+
+    >>> b = ReferralCode.batch(2, 3, 'test')
+    >>> print(pformat(b))
+    [{'record_id': 'SA-_TEST_00009', 'redcap_data_access_group': 'sa'},
+     {'record_id': 'SA-_TEST_00019', 'redcap_data_access_group': 'sa'},
+     {'record_id': 'SB-_TEST_00007', 'redcap_data_access_group': 'sb'},
+     {'record_id': 'SB-_TEST_00017', 'redcap_data_access_group': 'sb'},
+     {'record_id': 'SC-_TEST_00008', 'redcap_data_access_group': 'sc'},
+     {'record_id': 'SC-_TEST_00014', 'redcap_data_access_group': 'sc'}]
 """
 
 from binascii import crc32
@@ -39,8 +48,9 @@ def main(argv: py.List[str], environ: py.Dict[str, str],
 
     batch_size = int(argv[1]) if len(argv) >= 2 else ReferralCode.batch_size
     site_qty = int(argv[2]) if len(argv) >= 3 else ReferralCode.site_qty
+    invite_code_type = argv[3]
 
-    batch = ReferralCode.batch(batch_size, site_qty)
+    batch = ReferralCode.batch(batch_size, site_qty, invite_code_type)
     log.debug('batch: %s', batch)
 
     p1 = Project(web_ua, Project.kumc_redcap_api, environ[Project.key])
@@ -52,9 +62,19 @@ class ReferralCode:
     site_qty = 5
 
     @classmethod
-    def batch(cls, batch_size: int, site_qty: int) -> py.List[Record]:
+    def batch(cls, batch_size: int, site_qty: int,
+              invite_code_type: str) -> py.List[Record]:
+
+        if invite_code_type == 'production':
+            base_len: int = len('SA-1234')
+            invite_code: str = ''
+        elif invite_code_type == 'test':
+            invite_code = '_TEST_'
+            base_len = len('SA-_TEST_1234')
+
         sites = [f'S{chr(ord("A") + site_ix)}' for site_ix in range(site_qty)]
-        return [{'record_id': cls.check_digit(f'{site}-{n:04d}'),
+        return [{'record_id': cls.check_digit(
+                 f'{site}-{invite_code}{n:04d}', base_len),
                  'redcap_data_access_group': site.lower()}
                 for site in sites
                 for n in range(batch_size)]
@@ -84,6 +104,8 @@ class ReferralCode:
         crc = crc32(base.encode('utf-8'))
         digit = crc % 10
         out = f'{base}{digit}'
+        # uncomment following to understand the logic.
+        # print(candidate, base_len, base, crc, digit, out)
         if out != candidate and len(candidate) > base_len:
             raise ValueError(candidate)
         return out
