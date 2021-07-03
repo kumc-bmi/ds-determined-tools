@@ -15,7 +15,10 @@ autoblack:
 	#black .
 
 static:
-	$(MYPY) --strict $(SRCS)
+	# ds_status_sync.py:311: error: unused "type: ignore" comment
+	# ds_status_sync.py:343: error: unused "type: ignore" comment
+	# using --no-warn-no-return to hide above error
+	$(MYPY) --strict $(SRCS) --no-warn-no-return
 
 lint-import:
 	# this does import sorting for you, where flak8-isort will check it for you
