@@ -22,9 +22,10 @@ from datetime import datetime, timedelta
 from pathlib import Path as Path_T
 from urllib.error import HTTPError
 
-from requests import Request, Session as Session_T
+from requests import Request
+from requests import Session as Session_T
 
-from sds_flat import flatten, complete
+from sds_flat import complete, flatten
 
 log = logging.getLogger(__name__)
 

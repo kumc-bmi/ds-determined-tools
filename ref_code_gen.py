@@ -21,14 +21,14 @@ We can make a batch of 2 records from each of 3 sites::
      {'record_id': 'SC-_TEST_00014', 'redcap_data_access_group': 'sc'}]
 """
 
+import json
+import logging
+import typing as py
 from binascii import crc32
 from pprint import pformat
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import OpenerDirector as OpenerDirector_T
-import json
-import logging
-import typing as py
 
 log = logging.getLogger(__name__)
 

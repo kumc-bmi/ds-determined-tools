@@ -4,12 +4,24 @@ FLAKE8=flake8
 
 SRCS=ref_code_gen.py ds_status_sync.py sds_flat.py
 
-check: doctest lint static
+check: autopep autoblack lint doctest lint static
+
+autopep:
+	# "converting python code to PEP formate"
+	autopep8 .
+
+autoblack:
+	# "converting python code to BLACK formate"
+	#black .
 
 static:
 	$(MYPY) --strict $(SRCS)
 
-lint: $(SRCS)
+lint-import:
+	# this does import sorting for you, where flak8-isort will check it for you
+	isort 
+
+lint: $(SRCS) lint-import
 	$(FLAKE8) $(SRCS)
 
 doctest:
