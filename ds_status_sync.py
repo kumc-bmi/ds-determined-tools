@@ -36,6 +36,48 @@ STATUS_FORM = 'ds_connect_status'
 WebBuilder = py.Callable[..., Session_T]
 Record_T = py.Dict[str, str]
 
+selected_survey_key = ["record_id",
+                       "registerdate",
+                       "lastvisitdate",
+                       "lastupdatedate",
+                       "s_1_title",
+                       "s_1_completed",
+                       "s_1_played_time",
+                       "s_2_title",
+                       "s_2_completed",
+                       "s_2_played_time",
+                       "s_3_title",
+                       "s_3_completed",
+                       "s_3_played_time",
+                       "s_4_title",
+                       "s_4_completed",
+                       "s_4_played_time",
+                       "s_5_title",
+                       "s_5_completed",
+                       "s_5_played_time",
+                       "s_6_title",
+                       "s_6_completed",
+                       "s_6_played_time",
+                       "s_7_title",
+                       "s_7_completed",
+                       "s_7_played_time",
+                       "s_8_title",
+                       "s_8_completed",
+                       "s_8_played_time",
+                       "ds_connect_status_complete"]
+
+
+def select_recrods_surveys(records, selected_survey_key):
+    output_records = []
+
+    for record in records:
+        output_record = {}
+        for key in record:
+            if key in selected_survey_key:
+                output_record[key] = record[key]
+        output_records.append(output_record)
+    return output_records
+
 
 def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
          cwd: Path_T, now: py.Callable[[], datetime],
@@ -55,6 +97,7 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         rc = REDCapAPI(REDCAP_API, make_session(), env[api_passkey])
         status = ds.getstatus([DS_DETERMINED])
         records = list(complete(STATUS_FORM)(flatten(status)))
+        records = select_recrods_surveys(records, selected_survey_key)
         json.dump({'status': status, 'records': records}, stdout, indent=2)
         rc.import_records(records)
     elif '--send-consent' in argv:

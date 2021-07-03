@@ -38,3 +38,25 @@ debug: lint check
 
 install-dev-tools:
 	pip install mypy flake8
+
+ds_sync: clean venv
+	. venv/bin/activate && \
+	which python &&  python --version &&\
+	python ds_status_sync.py --get-status REDCAP_API_TOKEN DS_KEY >out/ds_status.json \
+	python ds_status_sync.py --send-consent REDCAP_API_TOKEN DS_KEY
+
+clean:
+	rm -rf out; mkdir -p out
+
+venv: venv_clear
+	# "creating python virtual env"
+	python -m venv venv
+	. ./venv/bin/activate && \
+	pip install --upgrade pip  && \
+	pip install -r requirements.txt  && \
+	pip freeze >  requirements_pip_freeze.txt  && \
+	which pip && which python && python --version
+
+venv_clear:
+	# "deleting python virtual env"
+	rm -rf venv || true
