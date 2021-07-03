@@ -19,7 +19,7 @@ static:
 
 lint-import:
 	# this does import sorting for you, where flak8-isort will check it for you
-	isort 
+	isort .
 
 lint: $(SRCS) lint-import
 	$(FLAKE8) $(SRCS)

@@ -414,7 +414,7 @@ if __name__ == '__main__':
         from datetime import datetime
         from os import environ
         from pathlib import Path
-        from sys import argv, stdout, stderr
+        from sys import argv, stderr, stdout
 
         from requests import Session
 

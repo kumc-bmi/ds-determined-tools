@@ -155,8 +155,8 @@ class Project:
 
 if __name__ == '__main__':
     def _script_io() -> None:
-        from sys import argv
         from os import environ
+        from sys import argv
         from urllib.request import build_opener
 
         main(argv[:], environ.copy(), logging.basicConfig, build_opener())
