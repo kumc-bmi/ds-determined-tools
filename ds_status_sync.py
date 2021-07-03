@@ -68,7 +68,9 @@ selected_survey_key = ["record_id",
                        "ds_connect_status_complete"]
 
 
-def select_recrods_surveys(records, selected_survey_key):
+def select_recrods_surveys(records: py.List[Record_T],
+                           selected_survey_key: py.List[str]) \
+        -> py.List[Record_T]:
     output_records = []
 
     for record in records:
