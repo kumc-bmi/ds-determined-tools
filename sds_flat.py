@@ -2,7 +2,6 @@ import csv
 import json
 import typing as py
 
-
 RECORD_ID = 'sbjid'
 Record_T = py.Dict[str, str]
 Records_T = py.Iterable[Record_T]
