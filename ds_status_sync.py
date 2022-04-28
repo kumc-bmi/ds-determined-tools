@@ -422,7 +422,7 @@ if __name__ == '__main__':
             import http.client as http_client
             http_client.HTTPConnection.debuglevel = 1  # type: ignore
 
-        logging.basicConfig(level=logging.INFO, stream=stderr)
+        logging.basicConfig(level=logging.debug, stream=stderr)
         main(argv[:], env=environ.copy(), stdout=stdout,
              cwd=Path('.'), now=datetime.now,
              make_session=lambda: Session())
