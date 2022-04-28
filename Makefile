@@ -57,7 +57,7 @@ install-dev-tools:
 ds_sync: clean venv
 	. venv/bin/activate && \
 	which python &&  python --version &&\
-	python ds_status_sync.py --get-status REDCAP_API_TOKEN DS_KEY >out/ds_status.json \
+	python ds_status_sync.py --get-status REDCAP_API_TOKEN DS_KEY >out/ds_status.json &&\
 	python ds_status_sync.py --send-consent REDCAP_API_TOKEN DS_KEY
 
 clean:
