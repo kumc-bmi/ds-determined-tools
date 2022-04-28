@@ -308,7 +308,7 @@ class DSConnectStudy(ConsentDest):
         log.debug('getting status for %s:\ndata: %s\nheaders: %s',
                   stids, req.data, req.headers.items())
         s = self.__session
-        resp = s.send(s.prepare_request(req))  ## type: ignore ##
+        resp = s.send(s.prepare_request(req))
         resp.raise_for_status()
         return [status for status in resp.json()]
 
@@ -340,7 +340,7 @@ class DSConnectStudy(ConsentDest):
                  len(consent_pdf), sbjid)
         req = self.consent_request(self.__api_key, consent_pdf, sbjid)
         s = self.__session
-        resp = s.send(s.prepare_request(req))  ## type: ignore ##
+        resp = s.send(s.prepare_request(req))
         resp.raise_for_status()
         log.info('sent consent form for %s', sbjid)
 
@@ -420,7 +420,7 @@ if __name__ == '__main__':
 
         if '--debug' in argv:
             import http.client as http_client
-            http_client.HTTPConnection.debuglevel = 1   ##type: ignore##
+            http_client.HTTPConnection.debuglevel = 1
 
         logging.basicConfig(level=logging.INFO, stream=stderr)
         main(argv[:], env=environ.copy(), stdout=stdout,
