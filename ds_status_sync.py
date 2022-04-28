@@ -105,14 +105,11 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         rc.import_records(records)
     elif '--send-consent' in argv:
         [api_passkey, ds_key] = argv[2:4]
-        log.info('location %d got in %s', int(1), str(argv))
         svc = ConsentToLink(REDCAP_API, make_session(), env[api_passkey])
-        log.info('location %d got in %s', int(2), str('ConsetLink done'))
         if '--test' in argv:
             dest = SaveConsent(cwd)  # type: ConsentDest
         else:
             dest = study(ds_key)
-            log.info('location %d got in %s', int(3), str('study done'))
         for record, doc in svc.pending(now()):
             dest.send_user_consent(record, doc)
     elif '--test-consent' in argv:
@@ -425,7 +422,7 @@ if __name__ == '__main__':
             import http.client as http_client
             http_client.HTTPConnection.debuglevel = 1  # type: ignore
 
-        logging.basicConfig(level=logging.DEBUG, stream=stderr)
+        logging.basicConfig(level=logging.INFO, stream=stderr)
         main(argv[:], env=environ.copy(), stdout=stdout,
              cwd=Path('.'), now=datetime.now,
              make_session=lambda: Session())
