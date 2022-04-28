@@ -107,10 +107,12 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         [api_passkey, ds_key] = argv[2:4]
         log.info('location %d got in %s', int(1), str(argv))
         svc = ConsentToLink(REDCAP_API, make_session(), env[api_passkey])
+        log.info('location %d got in %s', int(2), str(ConsetLink done))
         if '--test' in argv:
             dest = SaveConsent(cwd)  # type: ConsentDest
         else:
             dest = study(ds_key)
+            log.info('location %d got in %s', int(3), str(study done))
         for record, doc in svc.pending(now()):
             dest.send_user_consent(record, doc)
     elif '--test-consent' in argv:
