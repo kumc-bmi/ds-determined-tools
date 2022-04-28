@@ -105,6 +105,7 @@ def main(argv: py.List[str], env: py.Dict[str, str], stdout: py.IO[str],
         rc.import_records(records)
     elif '--send-consent' in argv:
         [api_passkey, ds_key] = argv[2:4]
+        log.info('location %d got in %s', int(1), str(argv))
         svc = ConsentToLink(REDCAP_API, make_session(), env[api_passkey])
         if '--test' in argv:
             dest = SaveConsent(cwd)  # type: ConsentDest
