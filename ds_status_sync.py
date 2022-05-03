@@ -249,7 +249,7 @@ class ConsentToLink(REDCapAPI):
     """
 
     instrument = 'consent_to_link'
-    recent = timedelta(days=180)
+    recent = timedelta(days=334)
 
     def consented_since(self, dateRangeBegin: datetime) -> py.List[str]:
         records = self.export_records(
