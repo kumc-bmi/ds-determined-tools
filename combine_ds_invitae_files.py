@@ -88,4 +88,3 @@ if __name__ == '__main__':
     [csv_input_dir,csv_output_path] = argv[1:3]
     create_single_ds_csv(csv_input_dir,csv_output_path)
     #python combine_ds_invitae_files.py invitae output/invitae_14csv_in1.csv
-   
