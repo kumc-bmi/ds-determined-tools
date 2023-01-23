@@ -7,3 +7,5 @@ venv
 out/
 *.csv
 */*.csv
+input
+output

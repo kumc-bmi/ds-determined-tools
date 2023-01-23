@@ -75,3 +75,10 @@ venv: venv_clear
 venv_clear:
 	# "deleting python virtual env"
 	rm -rf venv || true
+
+combine_ds_invitae_files:clean venv
+	# "combining ds invitae files"
+	. venv/bin/activate &&\
+	which python &&  python --version &&\
+	mkdir -p output &&\
+	python combine_ds_invitae_files.py input/invitae output/invitae_14csv_in1.csv
