@@ -14,10 +14,11 @@ autoblack:
 	# "converting python code to BLACK formate"
 	#black .
 
-static:
+static: clean venv
 	# ds_status_sync.py:311: error: unused "type: ignore" comment
 	# ds_status_sync.py:343: error: unused "type: ignore" comment
 	# using --no-warn-no-return to hide above error
+	. venv/bin/activate && \
 	$(MYPY) --strict $(SRCS) --no-warn-no-return
 
 lint-import:
