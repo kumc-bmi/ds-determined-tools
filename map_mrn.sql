@@ -1,7 +1,9 @@
 /** dua_request1980_1, dua_request1980_2 and dua_request1980_3 are provided from redcap project
  * schema: ds_determined
  **/
-CREATE TABLE pat_map AS
+DROP TABLE pat_mrn;
+
+CREATE TABLE pat_mrn AS
 SELECT
     record_id,
     COALESCE(dr1.email, dr2.email, dr3.email) AS email,
@@ -16,6 +18,8 @@ FROM
     LEFT JOIN dua_request1980_3 dr3 ON lower(rm.email) = lower(dr3.email)
 WHERE
     rm.email IS NOT NULL;
+
+DROP TABLE dua_request1980_all;
 
 CREATE TABLE dua_request1980_all AS
 SELECT
@@ -39,6 +43,8 @@ SELECT
 FROM
     dua_request1980_3;
 
+DROP TABLE names_map;
+
 CREATE TABLE names_map AS
 SELECT
     dr.patient_name,
@@ -55,7 +61,9 @@ WHERE
     AND trim(last_name_ds) IS NOT NULL
     AND trim(first_name_ds) IS NOT NULL;
 
-CREATE TABLE pat_map AS
+DROP TABLE pat_info;
+
+CREATE TABLE pat_info AS
 SELECT
     rm.record_id,
     COALESCE(dr1.email, dr2.email, dr3.email) AS email,
@@ -76,7 +84,7 @@ SELECT
     record_id,
     mrn
 FROM
-    pat_map
+    pat_info
 GROUP BY
     record_id,
     mrn;
