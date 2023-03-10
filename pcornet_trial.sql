@@ -58,7 +58,7 @@ WHERE
 
 COMMIT;
 
-DROP TABLE pat_map;
+DROP TABLE IF EXISTS pat_map;
 
 CREATE TABLE pat_map AS
 SELECT
@@ -103,13 +103,13 @@ GROUP BY
 
 ;
 
-DROP TABLE pat_map;
+DROP TABLE IF EXISTS pat_map;
 
 ALTER TABLE pat_map_tmp RENAME TO pat_map;
 
 COMMIT;
 
-DROP TABLE pcornet_trial;
+DROP TABLE IF EXISTS pcornet_trial;
 
 CREATE TABLE pcornet_trial AS
 SELECT
