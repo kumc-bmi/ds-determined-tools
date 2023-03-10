@@ -77,18 +77,58 @@ FROM
 WHERE
     rm.email IS NOT NULL;
 
+UPDATE
+    pat_map
+SET
+    mrn = lpad(mrn, 7, '0');
+
+--  delete duplicate rows
+CREATE TABLE pat_map_tmp AS
+SELECT
+    record_id,
+    email,
+    mrn,
+    first_name_ds,
+    last_name_ds,
+    patient_name
+FROM
+    pat_map pm
+GROUP BY
+    record_id,
+    email,
+    mrn,
+    first_name_ds,
+    last_name_ds,
+    patient_name;
+
+;
+
+DROP TABLE pat_map;
+
+ALTER TABLE pat_map_tmp RENAME TO pat_map;
+
+COMMIT;
+
+DROP TABLE pcornet_trial;
+
 CREATE TABLE pcornet_trial AS
 SELECT
     svp.pat_deid AS patid,
-    'DS_DETERMINED' AS trialid,
-    pm.record_id AS participantid,
+    'DS-DETERMINED' AS trialid,
+    cd.record_id AS participantid,
     'SA' AS trial_siteid, --change to your site id
     cd.consent_to_link_timestamp AS trial_enroll_date,
     NULL AS trial_end_date,
     NULL AS trial_withdraw_date,
     NULL AS trial_invite_code
 FROM
-    pat_map pm
-    JOIN pat_inclusion.static_valid_patients svp ON svp.fh_mrn = pm.mrn
-    LEFT JOIN consented_dates cd ON pm.record_id = cd.record_id;
+    consented_dates cd
+    LEFT JOIN pat_map pm ON pm.record_id = cd.record_id
+    LEFT JOIN pat_inclusion.static_valid_patients svp ON svp.fh_mrn = pm.mrn;
+
+DELETE FROM pcornet_trial cd
+WHERE patid IS NULL;
+
+-- delete patients that have not consented (check redcap and verify before deletion)
+COMMIT;
 
