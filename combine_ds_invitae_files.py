@@ -46,9 +46,10 @@ def create_single_ds_csv(csv_input_dir, csv_output_path):
         # filter data
         df = df[
             # survey starts with sit id
-            df.subject_ID.str.startswith('SA').fillna(False)
+            #df.subject_ID.str.startswith('SA').fillna(False)
             # survey is compelete
-            & (df.survey_complete == 1).fillna(False)
+            #& 
+            (df.survey_complete == 1).fillna(False)
         ]
 
         # only keep latest records
