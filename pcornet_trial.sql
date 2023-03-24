@@ -10,9 +10,9 @@ FROM
 WHERE
     lower(firstname) != 'test'
     AND lower(lastname) != 'test'
-    AND dc.record_id != 'referraltest'
-    AND dc.record_id NOT LIKE 'SA%';
+    AND dc.record_id != 'referraltest';
 
+--AND dc.record_id NOT LIKE 'SA%';
 -- match these patient based on first and last names
 UPDATE
     ds_connect AS dc
@@ -25,9 +25,9 @@ WHERE
     AND lower(nm.last_name_ds) = lower(dc.lastname)
     AND lower(firstname) != 'test'
     AND lower(lastname) != 'test'
-    AND dc.record_id != 'referraltest'
-    AND dc.record_id NOT LIKE 'SA%';
+    AND dc.record_id != 'referraltest';
 
+--AND dc.record_id NOT LIKE 'SA%';
 SELECT
     rd.record_id,
     dc.*,
@@ -53,8 +53,14 @@ WHERE
     AND lower(rd.last_name_ds) = lower(dc.lastname)
     AND lower(firstname) != 'test'
     AND lower(lastname) != 'test'
-    AND dc.record_id != 'referraltest'
-    AND dc.record_id NOT LIKE 'SA%';
+    AND dc.record_id != 'referraltest';
+
+--AND dc.record_id NOT LIKE 'SA%';
+DELETE FROM ds_connect
+WHERE (lower(firstname) = 'test'
+        AND lower(lastname) = 'test')
+    OR lower(record_id)
+    LIKE '%test%';
 
 COMMIT;
 
@@ -117,7 +123,7 @@ SELECT
     'DS-DETERMINED' AS trialid,
     cd.record_id AS participantid,
     'SA' AS trial_siteid, --change to your site id
-    cd.consent_to_link_timestamp AS trial_enroll_date,
+    cd.consent_to_link_timestamp + date_off AS trial_enroll_date,
     NULL AS trial_end_date,
     NULL AS trial_withdraw_date,
     NULL AS trial_invite_code
@@ -131,4 +137,3 @@ WHERE patid IS NULL;
 
 -- delete patients that have not consented (check redcap and verify before deletion)
 COMMIT;
-
