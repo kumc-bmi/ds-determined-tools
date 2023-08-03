@@ -2,3 +2,5 @@ requests
 types-requests
 autopep8
 flake8-isort
+pandas
+mypy

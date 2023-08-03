@@ -5,3 +5,7 @@ __pycache__
 .mypy_cache
 venv
 out/
+*.csv
+*/*.csv
+input
+output
