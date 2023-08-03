@@ -40,25 +40,26 @@ def create_single_ds_csv(csv_input_dir, csv_output_path):
     dfs_len = {}
     dfs_cols = {}
     for f in csv_files:
-
+        print(f)
         df = pd.read_csv(join(csv_input_dir, f), low_memory=False)
 
         # filter data
         df = df[
             # survey starts with sit id
-            df.subject_id.str.startswith('SA').fillna(False)
+            #df.subject_ID.str.startswith('SA').fillna(False)
             # survey is compelete
-            & (df.survey_complete == 1).fillna(False)
+            #& 
+            (df.survey_complete == 1).fillna(False)
         ]
 
         # only keep latest records
-        if len(df.subject_id.tolist()) != len(df.subject_id.unique().tolist()):
+        if len(df.subject_ID.tolist()) != len(df.subject_ID.unique().tolist()):
             print(f'User has finished survey multiple times in {f}')
-            df = df.sort_values(['subject_id', 'survey_time']).drop_duplicates(
-                ['subject_id'], keep='last')
+            df = df.sort_values(['subject_ID', 'survey_time']).drop_duplicates(
+                ['subject_ID'], keep='last')
 
         # set index so it can be joined using it
-        df = df.set_index(['org_name', 'patient_id', 'subject_id'])
+        df = df.set_index(['org_name', 'patient_id', 'subject_ID'])
         dfs[f] = df
 
         dfs_len[f] = len(df)
@@ -67,18 +68,18 @@ def create_single_ds_csv(csv_input_dir, csv_output_path):
     # -
 
     output_df = dfs['DS_Determined_IHQ_Survey.csv'].join(
-        dfs['DS_Determined_AdultQuestionnaire.csv'], how='left', rsuffix='_Adult').join(
+        dfs['DS_Determined_Adulthood_Questionnaire.csv'], how='left', rsuffix='_Adult').join(
         dfs['DS_Determined_WomensHealth_Questionnaire.csv'], how='left', rsuffix='_WomensHealth').join(
         dfs['DS_Determined_Sleep_Questionnaire.csv'], how='left', rsuffix='_Sleep').join(
         dfs['DS_Determined_Sibling_Questionnaire.csv'], how='left', rsuffix='_Sibling').join(
         dfs['DS_Determined_Skeletal_Questionnaire.csv'], how='left', rsuffix='_Skeletal').join(
         dfs['DS_Determined_MensHealth_Questionnaire.csv'], how='left', rsuffix='_MensHealth').join(
-        dfs['DS_Determined_PrenatalandHistory_Questionnaire.csv'], how='left', rsuffix='_PrenatalandHistory').join(
+        dfs['DS_Determined_PrenatalandBirth_Questionnaire.csv'], how='left', rsuffix='_PrenatalandHistory').join(
         dfs['DS_Determined_Development_Questionnaire.csv'], how='left', rsuffix='_Development').join(
         dfs['DS_Determined_Leukemia_Questionnaire.csv'], how='left', rsuffix='_Leukemia').join(
         dfs['DS_Determined_Heart_Questionnaire.csv'], how='left', rsuffix='_Heart').join(
         dfs['DS_Determined_Thyroid_Questionnaire.csv'], how='left', rsuffix='_Thyroid').join(
-        dfs['DS_Determined_Gastronintestinal_Survey.csv'], how='left', rsuffix='_Gastronintestinal').join(
+        dfs['DS_Determined_Gastrointestinal_Questionnaire.csv'], how='left', rsuffix='_Gastronintestinal').join(
         dfs['DS_Determined_TransitionAdulthood_Questionnaire.csv'], how='left', rsuffix='TransitionAdulthood')
 
     output_df = output_df.reset_index()
