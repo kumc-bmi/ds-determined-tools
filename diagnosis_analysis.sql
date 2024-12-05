@@ -1,12 +1,50 @@
 /*
  * This file finds shows stats reagrding Ds-connect vs CDM completeness in diagnosis data
  */
+SET search_path TO hb_workspace;
+
+drop table if exists dx_summary;
+CREATE TABLE if not exists dx_summary (
+	key_name text NOT NULL,
+	avg_sdi numeric,
+	stdev_sdi numeric,
+	min_sdi numeric,
+	max_sdi numeric,
+	cnt numeric,
+	manual_squery_cnt numeric,
+	timestamp timestamp default current_timestamp
+);
+
+insert into dx_summary
+select
+	'sdi_all' as key_name,
+    avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt
+from
+	sdi;
+
 -------------------------
 ---find patient that have
 ---dementia, alzahimre, cognitive decline
 ---from CDM and DS connect
 -------------------------
 -- CDM
+
+insert into dx_summary
+select
+	'Cognitive - CDM' as key_name,
+    avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	6 as manual_squery_cnt
+from
+	sdi
+where record_id in (	
 SELECT DISTINCT
     d.patid
 FROM
@@ -20,20 +58,38 @@ WHERE
     OR dx LIKE 'F02%'
     OR dx LIKE 'G30'
     OR dx IN ('331.0', '331.1', '294.2', '294.1', '331.83', 'R41.81', 'G31.84')
-    -- DS-connect
+--6
+);
+-- DS-connect
+insert into dx_summary
+select
+	'Cognitive - DS' as key_name,
+    avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	9 as manual_squery_cnt
+from
+	sdi
+where record_id in (
     SELECT
-        col4,
-        col224,
-        col327,
-        col328,
-        col329,
-        col941
+        col4
+--        ,col224,
+--        col327,
+--        col328,
+--        col329,
+--        col941
     FROM
         ds_connect dc
         JOIN consented c ON c.record_id = dc.col4
     WHERE
         c.dsconnect_access_agree = 1
-        AND col224 != 'No';
+        AND col224 != 'No'
+        AND (length(col224) > 10
+        OR col327 = 'Yes')
+    --12 (or 9?)
+);
 
 
 /** DS connect columns(col224, col327, col328, col329, col941): 
@@ -44,6 +100,18 @@ WHERE
  * If the participant has had a brain imaging study, what was the reason for obtaining the study? (Select all that apply.) - Symptoms of dementia
  */
 -- find the intersection between CDM and DS-connect patients
+insert into dx_summary
+select
+	'Cognitive - CDM & DS' as key_name,
+    avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	4 as manual_squery_cnt
+from
+	sdi
+where record_id in (
 SELECT
     col4
 FROM
@@ -68,6 +136,48 @@ WHERE
     OR dx LIKE 'F02%'
     OR dx LIKE 'G30'
     OR dx IN ('331.0', '331.1', '294.2', '294.1', '331.83', 'R41.81', 'G31.84')
+--4
+);
+
+-- find the patient in CDM or DS-connect patients
+insert into dx_summary
+select
+	'Cognitive - CDM or DS' as key_name,
+    avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	11 as manual_squery_cnt
+from
+	sdi
+where record_id in (
+SELECT
+    col4
+FROM
+    ds_connect dc
+    JOIN consented c ON c.record_id = dc.col4
+WHERE
+    c.dsconnect_access_agree = 1
+    AND col224 != 'No'
+    AND (length(col224) > 10
+        OR col327 = 'Yes')
+UNION
+SELECT DISTINCT
+    d.patid
+FROM
+    diagnosis_all d
+    JOIN consented c ON c.record_id = d.patid
+    JOIN ds_connect dc ON c.record_id = dc.col4
+WHERE
+    c.ehr_access_agree = 1
+    AND dx LIKE 'F03%'
+    OR dx LIKE 'F01%'
+    OR dx LIKE 'F02%'
+    OR dx LIKE 'G30'
+    OR dx IN ('331.0', '331.1', '294.2', '294.1', '331.83', 'R41.81', 'G31.84')
+--11
+);
     -------------------------
     ---find patient that have
     ---Sleep Apnea
