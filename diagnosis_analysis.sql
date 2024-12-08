@@ -611,4 +611,172 @@ where record_id in (
                 OR col909 = 'Currently a problem')
 --7
 );
+-------------------------
+---find patient that have
+---any given DX
+---from CDM and DS connect
+-------------------------
+drop table if exists all_cdm_dx;
+create table if not exists all_cdm_dx as
+SELECT 
+	distinct d.patid
+FROM
+    diagnosis_all d
+    JOIN consented c ON c.record_id = d.patid
+    JOIN ds_connect dc ON c.record_id = dc.col4
+WHERE
+    c.ehr_access_agree = 1 
+    -- Depression
+    and (
+    	dx LIKE 'F32%'
+    or dx LIKE 'F33%'
+    or dx LIKE 'F31%'
+    or dx LIKE '296.2%'
+    or dx LIKE '296.3%'
+    or dx LIKE '296%'
+    --Diabetes
+	or	dx LIKE 'E08%'
+    or dx LIKE 'E09%'
+    or dx LIKE 'E10%'
+    or dx LIKE 'E11%'
+    or dx LIKE 'E13%'
+    --Sleep Apnea
+    or dx = 'G47.33'
+    or dx = '327.23'
+    -- dementia, alzahimre, cognitive decline
+    or dx LIKE 'F03%'
+    or dx LIKE 'F01%'
+    or dx LIKE 'F02%'
+    or dx LIKE 'G30'
+    or dx IN ('331.0', '331.1', '294.2', '294.1', '331.83', 'R41.81', 'G31.84')
+    )
+--57
+;
+drop table if exists all_ds_dx;
+create table if not exists all_ds_dx as
+   select
+    	col4
+    FROM
+        ds_connect dc
+        JOIN consented c ON c.record_id = dc.col4
+    WHERE
+        c.dsconnect_access_agree = 1
+        -- Depression
+        AND (
+        	col192 = '1'
+        OR col198 = '1'
+        OR col897 = 'Currently a problem'
+        OR col909 = 'Currently a problem'
+        --Diabetes
+        OR col132 = 'Yes'
+        --Sleep Apnea
+        OR col91 = '1'
+        --dementia, alzahimre, cognitive decline
+		OR (col224 != 'No'
+	    	AND (length(col224) > 10
+	        OR col327 = 'Yes'))
+        )
+--67
+;
+--CDM
+insert into dx_summary
+select
+	'None of the above DX - CDM' as key_name,
+	avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	null as percentage_sdi, --round(count(overall_sdi)::numeric/91*100,2) as percentage_sdi,
+	57 as manual_squery_cnt
+	from sdi
+where record_id in (
+SELECT 
+	distinct d.patid
+FROM
+    diagnosis_all d
+    JOIN consented c ON c.record_id = d.patid
+    JOIN ds_connect dc ON c.record_id = dc.col4
+where patid not in (select * from all_cdm_dx ) --57
+
+);
+-- DS-connect
+insert into dx_summary
+select
+	'None of the above DX - DS' as key_name,
+	avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	null as percentage_sdi, --round(count(overall_sdi)::numeric/91*100,2) as percentage_sdi,
+	67 as manual_squery_cnt
+	from sdi
+where record_id in (
+   select
+    	col4
+    FROM
+        ds_connect dc
+        JOIN consented c ON c.record_id = dc.col4
+    WHERE col4 not in (select * from all_ds_dx ) --67
+);
+
+-- find the union between CDM and DS-connect patients
+insert into dx_summary
+select
+	'None of the above DX - CDM or DS' as key_name,
+	avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	null as percentage_sdi, --round(count(overall_sdi)::numeric/91*100,2) as percentage_sdi,
+	52 as manual_squery_cnt
+	from sdi
+where record_id in (
+SELECT 
+	distinct d.patid
+FROM
+    diagnosis_all d
+    JOIN consented c ON c.record_id = d.patid
+    JOIN ds_connect dc ON c.record_id = dc.col4
+where patid not in (select * from all_cdm_dx)
+union
+select
+	distinct col4
+FROM
+	ds_connect dc
+    JOIN consented c ON c.record_id = dc.col4
+    WHERE col4 not in (select * from all_ds_dx)
+);
+-- find the union between CDM and DS-connect patients
+insert into dx_summary
+select
+	'None of the above DX - CDM & DS' as key_name,
+	avg(overall_sdi) as avg_sdi,
+	stddev(overall_sdi) as stdev_sdi,
+	min(overall_sdi) as min_sdi,
+	max(overall_sdi) as max_sdi,
+	count(overall_sdi) as cnt,
+	null as percentage_sdi, --round(count(overall_sdi)::numeric/91*100,2) as percentage_sdi,
+	22 as manual_squery_cnt
+	from sdi
+where record_id in (
+SELECT 
+	distinct d.patid
+FROM
+    diagnosis_all d
+    JOIN consented c ON c.record_id = d.patid
+    JOIN ds_connect dc ON c.record_id = dc.col4
+where patid not in (select * from all_cdm_dx)
+intersect
+select
+	distinct col4
+FROM
+	ds_connect dc
+    JOIN consented c ON c.record_id = dc.col4
+    WHERE col4 not in (select * from all_ds_dx)
+--22
+);
+
 commit;
